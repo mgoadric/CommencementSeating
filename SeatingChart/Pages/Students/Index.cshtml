@@ -147,10 +147,12 @@
     @* <a class="btn btn-primary" href="/Students/SetNumColumns/?num=@(Model.numCols + 1)">Add Column</a>
     <a class="btn btn-primary" href="/Students/SetNumColumns/?num=@(Model.numCols - 1)">Remove Column</a> *@
 
+    @if(User.Identity.IsAuthenticated){
     <a class="btn btn-primary" asp-page="SetNumColumns" asp-route-num="@(Model.numCols + 1)" asp-route-chartNum="@(Model.ChartNum)">Add Column</a>
     <a class="btn btn-primary" asp-page="SetNumColumns" asp-route-num="@(Model.numCols - 1)" asp-route-chartNum="@(Model.ChartNum)">Remove Column</a>
     <a class="btn btn-primary" asp-page="Create" asp-route-chartNum="@(Model.ChartNum)">Add Student</a>
     <a class="btn btn-primary" asp-page="DeleteAll" asp-route-chartNum="@(Model.ChartNum)">Delete All</a>
+    }
 
     <h4>Front</h4>
     
@@ -161,15 +163,17 @@
 
     <div id="student-table-container">
         <div class="wrapper" id="student-table">  
-            @for(int i = 0; i < Model.Students.Count(); i++) {
+            @for(int i = 0; i < Model.DisplayNames.Length; i++) {
                 <div class="item">
                     <div class="textWrap">
-                        <p class="textContent">@Model.Students.ElementAt(i).FirstName @Model.Students.ElementAt(i).MiddleName @Model.Students.ElementAt(i).LastName</p>
+                        <p class="textContent">@Model.DisplayNames[i]</p>
                     </div>
+                    @if(User.Identity.IsAuthenticated){
                     <div class="buttons">
                         <a href="/Students/Edit/?id=@Model.Students.ElementAt(i).ID&chartNum=@Model.ChartNum" class="gridButton"><i class="fas fa-edit"></i></a>
                         <a href="/Students/Delete/?id=@Model.Students.ElementAt(i).ID&chartNum=@Model.ChartNum" class="gridButton"><i class="fas fa-trash-alt"></i></a>
                     </div>
+                    }
                 </div>
             }
         </div>
@@ -216,7 +220,9 @@
 
         function resize(){
             resizeText();
-            resizeIcons();
+            @if(User.Identity.IsAuthenticated){
+                @: resizeIcons();
+            }
         }
 
         @* Start: font resize function resulting in each item having unique font to perfectly fit in box *@
@@ -265,7 +271,7 @@
             var fontSz;
 
             textElements.forEach(function(element) {
-                const words = element.textContent.split(" ");
+                const words = element.textContent.split(/[\s-]+/);
                 words.forEach(function(word){
                     if (word.length > biggestLength){
                         biggestElement = element;
@@ -274,7 +280,7 @@
                 });
                 
             });
-
+            console.log(biggestElement.textContent)
             fontSz = newFontSize(biggestElement);
 
             textElements.forEach(function(element) {
@@ -325,10 +331,8 @@
                 var parentDivWidth = element.clientWidth;
                 var textHeight = element.scrollHeight;
                 var parentDivHeight = element.clientHeight;
-                console.log(textWidth + " : " + parentDivWidth);
                 var overflow = textWidth > parentDivWidth || textHeight > parentDivHeight;
                 if (!overflow){
-                    console.log("increases size");
                     while (!overflow){
                         fontSize += 1;
                         element.style.fontSize = fontSize + 'px';
@@ -341,7 +345,6 @@
                 }
 
                 else if (overflow){
-                    console.log("decrease size");
                     while (overflow){
                         fontSize -= 1;
                         element.style.fontSize = fontSize + 'px';
