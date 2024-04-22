@@ -7,6 +7,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using SeatingChart;
+using System.ComponentModel;
 
 namespace SeatingChart.Pages.Students
 {
@@ -29,6 +30,7 @@ namespace SeatingChart.Pages.Students
         //  public PaginatedList<Student> Students { get; set; } 
 
         public List<Student> Students { get; set; }
+        public String [] DisplayNames { get; set; }
 
         public int numCols { get; set;}
 
@@ -80,6 +82,85 @@ namespace SeatingChart.Pages.Students
             // Students = await PaginatedList<Student>.CreateAsync(
                 // studentsIQ.AsNoTracking(), pageIndex ?? 1, pageSize);
             Students = studentsIQ.ToList();
+            DisplayNames = getDisplayNames(Students);
+        }
+
+        private String [] getDisplayNames (List<Student> students){
+            Student [] studs = students.ToArray();
+            Dictionary<String, List<int>> nameDic = new Dictionary<string, List<int>>();
+            // String [] displayNames = new string [studs.Length];
+            String [] displayNames = (from s in studs select s.LastName).ToArray();
+            for (int i = 0; i < studs.Length; i++){
+                if(!nameDic.ContainsKey(studs[i].LastName)){
+                    nameDic.Add(studs[i].LastName, new List<int>());
+                }
+                nameDic[studs[i].LastName].Add(i);
+            }
+            HashSet<int> c = new HashSet<int>();
+            Console.WriteLine(studs.Length == displayNames.Length);
+            for (int i = 0; i < studs.Length; i++){
+                Console.WriteLine(studs[i].LastName +" , "+displayNames[i]);
+                if(!c.Contains(i)){
+                    if(nameDic[displayNames[i]].Count > 1){
+                        DisplayHelper(new Dictionary<String, List<int>>{{displayNames[i] , nameDic[displayNames[i]]}}, displayNames, studs, 0);
+                        foreach(int j in nameDic[studs[i].LastName]){
+                            c.Add(j);
+                        }
+                    }
+                }
+            }
+            return displayNames;
+        }
+        private void DisplayHelper (Dictionary<String, List<int>> dispDic, String[] displayNames, Student [] studs, int swch){
+            Dictionary<String, List<int>> newDispDic = new Dictionary<string, List<int>>();
+            foreach(String s in dispDic.Keys){
+                foreach(int i in dispDic[s]){
+                    switch(swch){
+                        case 0:
+                            Console.WriteLine(0);
+                            displayNames[i] = $"{studs[i].FirstName.Substring(0,1)} {displayNames[i]}";
+                            break;
+                        case 1:
+                            Console.WriteLine(1);
+                            if(studs[i].MiddleName != null){
+                                displayNames[i] = $"{studs[i].FirstName.Substring(0,1)}.{studs[i].MiddleName.Substring(0,1)}. {studs[i].LastName}";
+                            }
+                            break;
+                        case 2:
+                            if(studs[i].MiddleName != null){
+                                displayNames[i] = $"{studs[i].FirstName} {studs[i].MiddleName.Substring(0,1)} {studs[i].LastName}";
+                            }else{
+                                displayNames[i] = $"{studs[i].FirstName} {studs[i].LastName}";
+                            }
+                            break;
+                        case 3:
+                            if(studs[i].MiddleName != null){
+                                displayNames[i] = $"{studs[i].FirstName} {studs[i].MiddleName} {studs[i].LastName}";
+                            }
+                            break;
+                        default:
+                            Console.WriteLine("Return");
+                            return;
+                    }
+                    if(!newDispDic.ContainsKey(displayNames[i])){
+                        newDispDic.Add(displayNames[i], new List<int>());
+                    }
+                    newDispDic[displayNames[i]].Add(i);
+                }
+            }
+            List<String> toRemove = new List<String>();
+            foreach(String s in newDispDic.Keys){
+                Console.WriteLine("ToRemove: " + newDispDic[s].Count);
+                if(!(newDispDic[s].Count > 1)){
+                    toRemove.Add(s);
+                }
+            }
+            foreach(String s in toRemove){
+                newDispDic.Remove(s);
+            }
+            if(newDispDic.Keys.Count > 0){
+                DisplayHelper(newDispDic, displayNames, studs, swch + 1);
+            }
         }
     }
 }
