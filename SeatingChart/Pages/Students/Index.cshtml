@@ -152,6 +152,7 @@
     <a class="btn btn-primary" asp-page="SetNumColumns" asp-route-num="@(Model.numCols - 1)" asp-route-chartNum="@(Model.ChartNum)">Remove Column</a>
     <a class="btn btn-primary" asp-page="Create" asp-route-chartNum="@(Model.ChartNum)">Add Student</a>
     <a class="btn btn-primary" asp-page="DeleteAll" asp-route-chartNum="@(Model.ChartNum)">Delete All</a>
+    <a class="btn btn-primary" onclick="saveXML()"> Printer Version</a>
     }
 
     <h4>Front</h4>
@@ -165,6 +166,10 @@
         <div class="wrapper" id="student-table">  
             @for(int i = 0; i < Model.DisplayNames.Length; i++) {
                 <div class="item">
+                    @{
+                        var firstInitial = Model.Students.ElementAt(i).FirstName.Length > 0 ? Model.Students.ElementAt(i).FirstName[0].ToString() : "";
+                        var middleInitial = Model.Students.ElementAt(i).MiddleName.Length > 0 ? Model.Students.ElementAt(i).MiddleName[0].ToString() : "";
+                    }
                     <div class="textWrap">
                         <p class="textContent">@Model.DisplayNames[i]</p>
                     </div>
@@ -360,3 +365,101 @@
 
 </body>
 </html>
+
+<script>
+    function createXML() {
+    var rows = rowDict(); // Get rows dictionary
+    var xml = "";
+    for (var key in rows) {
+        if (rows.hasOwnProperty(key)) {
+            xml += "<row>";
+            rows[key].forEach(function(student){
+                xml += "<student>";
+                xml += student + " ";
+                xml += "</student>";
+            });
+            xml += "</row>";
+        }
+    }
+    return "<students>" + xml + "</students>";
+}
+
+function rowDict() {
+    var students = document.querySelectorAll('.textContent');
+    var rows = {};
+    var initial = 1;
+    // get column length from site
+    var colLength = @Model.numCols;
+    //var colLength = students.length / rowLength;
+    console.log(colLength);
+    for (var i = 0; i < students.length; i++) {
+        if (i % colLength == 0 && i > 0) {
+            initial += 1;
+        }
+        if (rows[initial]) {
+            rows[initial].push(students[i].textContent);
+        } else {
+            rows[initial] = [students[i].textContent];
+        }
+    }
+    // add empty seats until the final row is equal to the other rows
+    if (Object.keys(rows).length > 1) {
+        var lastRow = rows[Object.keys(rows).length];
+        var lastRowLength = lastRow.length;
+        for (var i = lastRowLength; i < colLength; i++) {
+            lastRow.push("");
+        }
+    }
+    return rows;
+}
+
+function saveXML() {
+    var dict = rowDict();
+    console.log(dict);
+    var xmlData = createXML();
+    console.log(xmlData);
+    var html = xmlToHtml(xmlData);
+    console.log(html); 
+    var cssHtml = addCss(html);
+    console.log(cssHtml);
+    var blob = new Blob([cssHtml], { type: 'application/html' });
+
+    // Create a download link
+    var link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = 'students.html';
+    link.click();
+    
+}
+
+function xmlToHtml(xml) {
+    var xmlDoc = $.parseXML(xml);
+    var $xml = $(xmlDoc);
+    var $students = $xml.find("students");
+    var $rows = $students.find("row");
+    var html = "";
+    $rows.each(function() {
+        var $row = $(this);
+        var $students = $row.find("student");
+        html += "<div class='row'>" + " Row " + $row.index() + ": ";
+        $students.each(function() {
+            var $student = $(this);
+            html += "<div class='student'>";
+            html += $student.text();
+            html += "</div>";
+        });
+        html += "</div>";
+    });
+    return html;
+}
+
+function addCss(html) {
+    var css = "<style>";
+    css += "body { font-family: Arial; }";
+    css += ".row { display: flex; }";
+    css += ".student { flex: 1 }";
+    css += "</style>";
+    return css + html;
+}
+
+</script>
