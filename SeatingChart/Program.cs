@@ -34,7 +34,7 @@ using (var scope = app.Services.CreateScope())
 
     var context = services.GetRequiredService<ChartContext>();
     //context.Database.EnsureCreated();
-    DbInitializer.Initialize(context);
+    //DbInitializer.Initialize(context);
 }
 
 app.UseHttpsRedirection();
