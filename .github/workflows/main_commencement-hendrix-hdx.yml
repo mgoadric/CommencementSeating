@@ -56,7 +56,7 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'commencement-hendrix-hdx'
+          app-name: 'hdxcommencement'
           slot-name: 'Production'
           package: .
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_95EA4E90564D4C4E84E2C9A90A3127C4 }}
