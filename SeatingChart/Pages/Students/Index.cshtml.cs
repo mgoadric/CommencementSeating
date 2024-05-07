@@ -122,12 +122,12 @@ namespace SeatingChart.Pages.Students
                             break;
                         case 1:
                             Console.WriteLine(1);
-                            if(studs[i].MiddleName != null){
+                            if(studs[i].MiddleName != null && studs[i].MiddleName.Length > 0){
                                 displayNames[i] = $"{studs[i].FirstName.Substring(0,1)}.{studs[i].MiddleName.Substring(0,1)}. {studs[i].LastName}";
                             }
                             break;
                         case 2:
-                            if(studs[i].MiddleName != null){
+                            if(studs[i].MiddleName != null && studs[i].MiddleName.Length > 0){
                                 displayNames[i] = $"{studs[i].FirstName} {studs[i].MiddleName.Substring(0,1)} {studs[i].LastName}";
                             }else{
                                 displayNames[i] = $"{studs[i].FirstName} {studs[i].LastName}";
